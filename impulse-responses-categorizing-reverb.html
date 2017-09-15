@@ -3,11 +3,11 @@
 
 <head>
   <!-- ## for client-side less
-  <link rel="stylesheet/less" type="text/css" href="http:/smerdy.github.io/index.html/theme/css/style.less">
+  <link rel="stylesheet/less" type="text/css" href="http:/smerdy.github.io/theme/css/style.less">
   <script src="http://cdnjs.cloudflare.com/ajax/libs/less.js/1.7.3/less.min.js" type="text/javascript"></script>
   -->
-  <link rel="stylesheet" type="text/css" href="http:/smerdy.github.io/index.html/theme/css/style.css">
-  <link rel="stylesheet" type="text/css" href="http:/smerdy.github.io/index.html/theme/css/pygments.css">
+  <link rel="stylesheet" type="text/css" href="http:/smerdy.github.io/theme/css/style.css">
+  <link rel="stylesheet" type="text/css" href="http:/smerdy.github.io/theme/css/pygments.css">
   <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=PT+Sans|PT+Serif|PT+Mono">
 
   <meta charset="utf-8" />
@@ -36,14 +36,14 @@
 <body>
   <aside>
     <div id="user_meta">
-      <a href="http:/smerdy.github.io/index.html">
+      <a href="http:/smerdy.github.io">
         <img src="resources/default.jpg" alt="logo">
       </a>
-      <h2><a href="http:/smerdy.github.io/index.html">Joshua Pham</a></h2>
+      <h2><a href="http:/smerdy.github.io">Joshua Pham</a></h2>
       <p>computationally perceptive</p>
       <ul>
-        <li><a href="http:/smerdy.github.io/index.html/archives.html">Posts</a></li>
-        <li><a href="http:/smerdy.github.io/index.html/">About</a></li>
+        <li><a href="http:/smerdy.github.io/archives.html">Posts</a></li>
+        <li><a href="http:/smerdy.github.io/">About</a></li>
       </ul>
     </div>
   </aside>
@@ -51,13 +51,13 @@
   <main>
     <header>
       <p>
-      <a href="http:/smerdy.github.io/index.html">Index</a> &brvbar; <a href="http:/smerdy.github.io/index.html/archives.html">Archives</a>
+      <a href="http:/smerdy.github.io">Index</a> &brvbar; <a href="http:/smerdy.github.io/archives.html">Archives</a>
       </p>
     </header>
 
 <article>
   <div class="article_title">
-    <h3><a href="http:/smerdy.github.io/index.html/impulse-responses-categorizing-reverb.html">Impulse Responses: Categorizing Reverb</a></h3>
+    <h3><a href="http:/smerdy.github.io/impulse-responses-categorizing-reverb.html">Impulse Responses: Categorizing Reverb</a></h3>
   </div>
   <div class="article_text">
     <p>I'm taking a Musical Acoustics class where we've been learning that the architectural features of a room -- everything from the material of the walls to the occupants in the room -- affect the response time. However, I wanted to explore whether this response time is also frequency dependent. Do some frequencies sustain for longer than others, and can this help characterize the room?</p>
@@ -106,11 +106,11 @@
 
 <h2>Analyzing the responses</h2>
 <p>Here's a chart showing the response for each play. In this example, the "room" is my bedroom.</p>
-<p><img alt="" src="http:/smerdy.github.io/index.html/resources/room.png"></p>
+<p><img alt="" src="http:/smerdy.github.io/resources/room.png"></p>
 <p><em>(In the chart, frequency increases from top to bottom, and time increases from left to right. Yellow is a high value, and blue is a low value. Frequency quantization is described further in the code comments above, but 200 does not mean 200 Hz).</em></p>
 <p>You might be able to observe some regularity to the responses, but there is noise. Even the average of all the responses had some noise, so I decided to smooth the image of the responses to remove that noise. I swept a Gaussian filter through the image, hoping this would create a more general, forgiving, and flexible representation of its room for comparison with other responses.</p>
 <p>Here's the same chart, but recorded in my bathtub, for comparison. The speaker was placed in the tub, and the microphone was held in the air.</p>
-<p><img alt="" src="http:/smerdy.github.io/index.html/resources/bathtub.png"></p>
+<p><img alt="" src="http:/smerdy.github.io/resources/bathtub.png"></p>
 <p>The low end of the spectrum seems to live longer across the board, and it was audible when I tested it. Hopefully this helps uniquely characterize the sound, and it does as we will see. Neither my room nor the bathtub had very long reverberation times, so that alone would not characterize the sound.</p>
 <h2>Developing a method to compare responses</h2>
 <p>I thought about taking the sum of the intensity values in the entire response matrix to compare responses, but that didn't seem like a useful or granular enough measure. What I wanted was something frequency dependent.</p>
@@ -198,9 +198,9 @@
 
 
 <p>The results are shown below:</p>
-<p><img alt="" src="http:/smerdy.github.io/index.html/resources/threshold.png"></p>
+<p><img alt="" src="http:/smerdy.github.io/resources/threshold.png"></p>
 <p><em>Here is the thresholded response</em></p>
-<p><img alt="" src="http:/smerdy.github.io/index.html/resources/segmented.png"></p>
+<p><img alt="" src="http:/smerdy.github.io/resources/segmented.png"></p>
 <p><em>Here is the response after thresholding and downsampling of frequency segments</em></p>
 <p>Taking the sum of the intensities for each frequency segment's response, I get a vector of values for each of the five bands. They map out quite well to the length and intensity of the frequencies' responses!</p>
 <div class="highlight"><pre><span></span>181.0189
@@ -273,7 +273,7 @@
   </div>
   <div class="article_meta">
     <p>Posted on: Fri 27 January 2017</p>
-    <p>Category: <a href="http:/smerdy.github.io/index.html/category/posts.html">posts</a>
+    <p>Category: <a href="http:/smerdy.github.io/category/posts.html">posts</a>
     </p>
   </div>
 
