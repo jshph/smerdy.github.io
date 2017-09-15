@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- ## for client-side less
+  <link rel="stylesheet/less" type="text/css" href="/theme/css/style.less">
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/less.js/1.7.3/less.min.js" type="text/javascript"></script>
+  -->
+  <link rel="stylesheet" type="text/css" href="/theme/css/style.css">
+  <link rel="stylesheet" type="text/css" href="/theme/css/pygments.css">
+  <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=PT+Sans|PT+Serif|PT+Mono">
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="Joshua Pham">
+  <meta name="description" content="Posts and writings by Joshua Pham">
+
+  <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Joshua Pham's blog Atom" />
+
+<meta name="keywords" content="">
+
+  <title>
+    Joshua Pham's blog
+&ndash; Impulse Responses: Categorizing Reverb  </title>
+
+  <script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-84680645-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+</head>
+
+<body>
+  <aside>
+    <div id="user_meta">
+      <a href="">
+        <img src="resources/default.jpg" alt="logo">
+      </a>
+      <h2><a href="">Joshua Pham</a></h2>
+      <p>computationally perceptive</p>
+      <ul>
+        <li><a href="/archives.html">Posts</a></li>
+        <li><a href="/">About</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <main>
+    <header>
+      <p>
+      <a href="">Index</a> &brvbar; <a href="/archives.html">Archives</a>
+      &brvbar; <a href="/feeds/all.atom.xml">Atom</a>
+      </p>
+    </header>
+
+<article>
+  <div class="article_title">
+    <h3><a href="/impulse-responses-categorizing-reverb.html">Impulse Responses: Categorizing Reverb</a></h3>
+  </div>
+  <div class="article_text">
+    <p>I'm taking a Musical Acoustics class where we've been learning that the architectural features of a room -- everything from the material of the walls to the occupants in the room -- affect the response time. However, I wanted to explore whether this response time is also frequency dependent. Do some frequencies sustain for longer than others, and can this help characterize the room?</p>
+<p>To study this, I used an "impulse" signal, which is a short 1 ms sample played with equal loudness at all frequencies. Using speakers with an adequate response (bass to highs), one could play this sound in some room and measure the response with a microphone simultaneously. Taking this a step further, I explored whether it is possible to determine the room that the impulse is played in by comparing a response to a "database" of responses for known rooms -- almost like a form of echolocation. I figured this kind of characterization would be more difficult to do with response time alone.</p>
+<p>When I started out, I looked through some research papers, but most involved advanced signal processing techniques. Instead, I took a more visual approach, inspired by some techniques in MATLAB that I learned this past semester in a computer vision course taught by Dr. Kristen Grauman.</p>
+<h2>Recording the responses</h2>
+<p>The script below, <code>getResponses.m</code>, plays the sample 5 consecutive times and simultaneously records them. It stores each response as a 2d matrix of intensity values, for frequency (vertical) and sample (horizontal), which is a digital representation of time. For now, I stack the responses into <code>spectra</code>, which is a format I can save to disk and load to experiment with later.</p>
+<div class="highlight"><pre><span></span><span class="n">clear</span><span class="p">;</span>
+<span class="n">close</span> <span class="n">all</span><span class="p">;</span>
+
+<span class="p">[</span><span class="n">impulse</span><span class="p">,</span> <span class="n">fs</span><span class="p">]</span> <span class="p">=</span> <span class="n">audioread</span><span class="p">(</span><span class="s">&#39;impulse48khz.wav&#39;</span><span class="p">);</span>
+
+<span class="n">spectra</span> <span class="p">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="n">player</span> <span class="p">=</span> <span class="n">audioplayer</span><span class="p">(</span><span class="n">impulse</span><span class="p">,</span> <span class="n">fs</span><span class="p">);</span>
+<span class="n">listener</span> <span class="p">=</span> <span class="n">audiorecorder</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+
+<span class="k">for</span> <span class="n">run</span> <span class="p">=</span> <span class="mi">1</span><span class="p">:</span><span class="mi">5</span>
+
+    <span class="c">% pad the duration by 2 secs</span>
+    <span class="n">dur</span> <span class="p">=</span> <span class="nb">size</span><span class="p">(</span><span class="n">impulse</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">fs</span> <span class="o">+</span> <span class="mi">2</span><span class="p">;</span>
+
+    <span class="c">% simultaneously record and play</span>
+    <span class="n">record</span><span class="p">(</span><span class="n">listener</span><span class="p">,</span> <span class="n">dur</span><span class="p">);</span>
+    <span class="n">play</span><span class="p">(</span><span class="n">player</span><span class="p">);</span>
+    <span class="n">pause</span><span class="p">(</span><span class="n">dur</span><span class="p">);</span>
+    <span class="n">response</span> <span class="p">=</span> <span class="n">getaudiodata</span><span class="p">(</span><span class="n">listener</span><span class="p">);</span>
+
+    <span class="c">% pad the pop to match response.</span>
+    <span class="n">popp</span> <span class="p">=</span> <span class="nb">zeros</span><span class="p">(</span><span class="nb">size</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="n">popp</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="nb">size</span><span class="p">(</span><span class="n">impulse</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">:)</span> <span class="p">=</span> <span class="n">impulse</span><span class="p">(:,</span> <span class="mi">1</span><span class="p">);</span>
+
+    <span class="c">% divide into 50-sample windows, no overlap, at a quantization of</span>
+    <span class="c">% 100-Hz intervals of &quot;cyclical freqs&quot; from 1 Hz to 20Khz (sampled at</span>
+    <span class="c">% 48000 Hz, so roughly half that, which is symmetric to the rest). This</span>
+    <span class="c">% yields 200 frequency &quot;bins&quot;. The response plot thus has 200 rows.</span>
+    <span class="p">[</span><span class="n">s</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">t</span><span class="p">]</span> <span class="p">=</span> <span class="n">spectrogram</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">100</span><span class="p">:</span><span class="mi">20000</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="s">&#39;yaxis&#39;</span><span class="p">);</span>
+    <span class="n">imObj</span> <span class="p">=</span> <span class="n">imagesc</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="nb">log10</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">s</span><span class="p">)));</span>
+    <span class="n">spectrum</span> <span class="p">=</span> <span class="n">imObj</span><span class="p">.</span><span class="n">CData</span><span class="p">;</span>
+    <span class="k">if</span> <span class="n">spectra</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="n">spectra</span> <span class="p">=</span> <span class="nb">zeros</span><span class="p">(</span><span class="nb">size</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="nb">size</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">5</span><span class="p">);</span>
+    <span class="k">end</span>
+    <span class="n">spectra</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="nb">size</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">1</span><span class="p">:</span><span class="nb">size</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">run</span><span class="p">)</span> <span class="p">=</span> <span class="n">spectrum</span><span class="p">;</span>
+<span class="k">end</span>
+</pre></div>
+
+
+<h2>Analyzing the responses</h2>
+<p>Here's a chart showing the response for each play. In this example, the "room" is my bedroom.</p>
+<p><img alt="" src="/resources/room.png"></p>
+<p><em>(In the chart, frequency increases from top to bottom, and time increases from left to right. Yellow is a high value, and blue is a low value. Frequency quantization is described further in the code comments above, but 200 does not mean 200 Hz).</em></p>
+<p>You might be able to observe some regularity to the responses, but there is noise. Even the average of all the responses had some noise, so I decided to smooth the image of the responses to remove that noise. I swept a Gaussian filter through the image, hoping this would create a more general, forgiving, and flexible representation of its room for comparison with other responses.</p>
+<p>Here's the same chart, but recorded in my bathtub, for comparison. The speaker was placed in the tub, and the microphone was held in the air.</p>
+<p><img alt="" src="/resources/bathtub.png"></p>
+<p>The low end of the spectrum seems to live longer across the board, and it was audible when I tested it. Hopefully this helps uniquely characterize the sound, and it does as we will see. Neither my room nor the bathtub had very long reverberation times, so that alone would not characterize the sound.</p>
+<h2>Developing a method to compare responses</h2>
+<p>I thought about taking the sum of the intensity values in the entire response matrix to compare responses, but that didn't seem like a useful or granular enough measure. What I wanted was something frequency dependent.</p>
+<p>I also took a look at audio fingerprinting, a technique used in Shazam and similar services, for which an excellent article was written here: <a href="http://willdrevo.com/fingerprinting-and-audio-recognition-with-python/">http://willdrevo.com/fingerprinting-and-audio-recognition-with-python/</a></p>
+<p>Unfortunately, though, my response is pretty short and the impulse is uniform in frequency, and this works better with the varied frequency distributions through time (several seconds of a song).</p>
+<p>I settled on the following method, developed around an intuition for the hypothesis that one frequency's response will ring longer than another's:</p>
+<ul>
+<li><strong>Sum up the intensity values for a frequency band (a row in the chart) through time. This is an approximation of how long that particular frequency reverberates, but the sum also accounts for the decrease in volume of that frequency over time.</strong> I realize that this is one area where my visual interpretation falls short: each frequency's response is dependent of the other, when actually harmonics of one frequency affect (through refraction, reflection, etc.) other frequency responses as they come into the microphone.</li>
+<li>For any element in the response matrix, I want anything that represents a still-ringing sound to be considered. I want to discard the rest, especially negative values that may take away from that sum. So I threshold the values using a MATLAB function that finds an appropriate global threshold value. I set any intensity below that value to zero, so they don't contribute to the sum.</li>
+<li>At this point, we still have 200 frequency segments. I assume that cutting down this number, to a lower resolution, will still hold enough information to differentiate responses between rooms. I choose a downsampling factor of 40, for a result of 5 separate frequency responses.</li>
+</ul>
+<p>Here's the code I use to do this:</p>
+<div class="highlight"><pre><span></span><span class="k">function</span><span class="w"> </span>[ tail_sums ] <span class="p">=</span><span class="w"> </span><span class="nf">processResponse</span><span class="p">(</span> spectra_name, WILL_PLOT <span class="p">)</span><span class="w"></span>
+<span class="c">%% Trim the responses.</span>
+
+<span class="n">sampleCutoff</span> <span class="p">=</span> <span class="mi">250</span><span class="p">;</span>
+
+<span class="c">% load responses.</span>
+<span class="n">load</span><span class="p">(</span><span class="n">spectra_name</span><span class="p">,</span> <span class="s">&#39;spectra&#39;</span><span class="p">);</span>
+
+<span class="n">numResponses</span> <span class="p">=</span> <span class="nb">size</span><span class="p">(</span><span class="n">spectra</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
+<span class="n">trimmedSpectra</span> <span class="p">=</span> <span class="nb">zeros</span><span class="p">(</span><span class="nb">size</span><span class="p">(</span><span class="n">spectra</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">sampleCutoff</span><span class="p">,</span> <span class="n">numResponses</span><span class="p">);</span> <span class="c">% hardcode, only care about 1000 samples.</span>
+
+<span class="k">for</span> <span class="n">rspNo</span> <span class="p">=</span> <span class="mi">1</span><span class="p">:</span><span class="n">numResponses</span>
+    <span class="n">response</span> <span class="p">=</span> <span class="n">spectra</span><span class="p">(:,</span> <span class="p">:,</span> <span class="n">rspNo</span><span class="p">);</span>
+    <span class="p">[</span><span class="n">magnitude</span><span class="p">,</span> <span class="o">~</span><span class="p">]</span> <span class="p">=</span> <span class="n">imgradient</span><span class="p">(</span><span class="n">response</span><span class="p">);</span> <span class="c">% get gradient of image.</span>
+
+    <span class="c">% trim the image by taking the max edge in the horizontal direction as</span>
+    <span class="c">% the cutoff. This edge will have maximum vertical sum (intensity of</span>
+    <span class="c">% gradient image along that edge); it is the start of the impulse sound.</span>
+    <span class="p">[</span><span class="o">~</span><span class="p">,</span> <span class="n">peakIdx</span><span class="p">]</span> <span class="p">=</span> <span class="n">max</span><span class="p">(</span><span class="n">sum</span><span class="p">(</span><span class="n">magnitude</span><span class="p">(:,</span> <span class="mi">1</span><span class="p">:(</span><span class="k">end</span><span class="o">-</span><span class="mi">200</span><span class="p">)),</span> <span class="mi">1</span><span class="p">));</span> <span class="c">% peak noise block @ end.</span>
+    <span class="n">trimmed</span> <span class="p">=</span> <span class="n">response</span><span class="p">(:,</span> <span class="n">peakIdx</span><span class="p">:</span><span class="n">peakIdx</span> <span class="o">+</span> <span class="n">sampleCutoff</span> <span class="o">-</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="n">trimmedSpectra</span><span class="p">(:,</span> <span class="mi">1</span><span class="p">:</span><span class="n">sampleCutoff</span><span class="p">)</span> <span class="p">=</span> <span class="n">trimmed</span><span class="p">;</span>
+
+    <span class="k">if</span> <span class="n">WILL_PLOT</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="n">subplot</span><span class="p">(</span><span class="n">numResponses</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">rspNo</span><span class="p">);</span>
+        <span class="n">imagesc</span><span class="p">(</span><span class="n">trimmed</span><span class="p">);</span>
+        <span class="n">title</span><span class="p">([</span><span class="s">&#39;Trimmed responses: #&#39;</span> <span class="n">num2str</span><span class="p">(</span><span class="n">rspNo</span><span class="p">)]);</span>
+    <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c">% Now that they are lined up, combine the responses and clean them up</span>
+<span class="c">% (normalize to the max value + blur).</span>
+<span class="n">sumTrimmed</span> <span class="p">=</span> <span class="n">sum</span><span class="p">(</span><span class="n">trimmedSpectra</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">/</span> <span class="nb">size</span><span class="p">(</span><span class="n">trimmedSpectra</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
+<span class="n">blurred</span> <span class="p">=</span> <span class="n">imfilter</span><span class="p">(</span><span class="n">sumTrimmed</span><span class="p">,</span> <span class="n">fspecial</span><span class="p">(</span><span class="s">&#39;gaussian&#39;</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="s">&#39;replicate&#39;</span><span class="p">);</span>
+
+<span class="c">% show the averaged image.</span>
+<span class="k">if</span> <span class="n">WILL_PLOT</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="n">subplot</span><span class="p">(</span><span class="n">numResponses</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">numResponses</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="n">imagesc</span><span class="p">(</span><span class="n">blurred</span><span class="p">);</span>
+    <span class="n">title</span><span class="p">(</span><span class="s">&#39;Averaged + blurred&#39;</span><span class="p">);</span>
+<span class="k">end</span>
+
+<span class="c">% normalize to [0, 1]. Had negatives.</span>
+<span class="n">norm_blurred</span> <span class="p">=</span> <span class="p">(</span><span class="n">blurred</span> <span class="o">-</span> <span class="n">min</span><span class="p">(</span><span class="n">min</span><span class="p">(</span><span class="n">blurred</span><span class="p">)))</span> <span class="o">/</span> <span class="p">(</span><span class="n">max</span><span class="p">(</span><span class="n">max</span><span class="p">(</span><span class="n">blurred</span><span class="p">))</span> <span class="o">-</span> <span class="n">min</span><span class="p">(</span><span class="n">min</span><span class="p">(</span><span class="n">blurred</span><span class="p">)));</span>
+<span class="c">% hard cutoff when reverb tail ends. Zero out the rest to accurately</span>
+<span class="c">% calculate peaks.</span>
+<span class="n">norm_blurred</span><span class="p">(</span><span class="n">norm_blurred</span> <span class="o">&lt;</span> <span class="n">graythresh</span><span class="p">(</span><span class="n">norm_blurred</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.6</span><span class="p">)</span> <span class="p">=</span> <span class="mi">0</span><span class="p">;</span>
+
+<span class="c">% show the image with a hard cutoff.</span>
+<span class="k">if</span> <span class="n">WILL_PLOT</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="n">figure</span><span class="p">;</span>
+    <span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="n">imagesc</span><span class="p">(</span><span class="n">norm_blurred</span><span class="p">);</span>
+<span class="k">end</span>
+
+<span class="c">% downsample the frequency spectrum into 5 frequency segments (200 rows /</span>
+<span class="c">% 40 = 5)</span>
+<span class="n">quantized_blurred</span> <span class="p">=</span> <span class="n">downsample</span><span class="p">(</span><span class="n">norm_blurred</span><span class="p">,</span> <span class="mi">40</span><span class="p">);</span>
+
+<span class="k">if</span> <span class="n">WILL_PLOT</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+    <span class="n">imagesc</span><span class="p">(</span><span class="n">quantized_blurred</span><span class="p">);</span>
+<span class="k">end</span>
+
+<span class="c">% tail_sums holds a 5 x 1 vector; each element is the sum of intensities</span>
+<span class="c">% throughout a bin&#39;s response tail. A bin is the downsampled frequency</span>
+<span class="c">% segment. Although this is a radical transformation that may have side</span>
+<span class="c">% effects, all responses will be processed the same, so this is something</span>
+<span class="c">% we can use to compare responses.</span>
+<span class="n">tail_sums</span> <span class="p">=</span> <span class="n">sum</span><span class="p">(</span><span class="n">quantized_blurred</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+
+<span class="k">end</span>
+</pre></div>
+
+
+<p>The results are shown below:</p>
+<p><img alt="" src="/resources/threshold.png"></p>
+<p><em>Here is the thresholded response</em></p>
+<p><img alt="" src="/resources/segmented.png"></p>
+<p><em>Here is the response after thresholding and downsampling of frequency segments</em></p>
+<p>Taking the sum of the intensities for each frequency segment's response, I get a vector of values for each of the five bands. They map out quite well to the length and intensity of the frequencies' responses!</p>
+<div class="highlight"><pre><span></span>181.0189
+122.3577
+91.6212
+81.9022
+99.3999
+</pre></div>
+
+
+<p>So let's say I want to determine the room I'm in, and I fire the impulse and I record the response. I generate a vector for this response, then take the Euclidean distance between two vectors. Each vector is already in order of increasing frequency, at the same, regular interval. This is the calculation:</p>
+<p><span class="math">\( d = \sqrt{\sum_{i = 1} ^ 5 (s_{2i} - s_{1i}) ^ 2}\)</span></p>
+<p>Where <span class="math">\(d\)</span> is distance and a vector is <span class="math">\(\textbf{s} = (s_{21}, s_{22}, \dots, s_{2i}, \dots, s_{2n}), |s| = n\)</span>.  <span class="math">\(s_{2i}\)</span> represents a sum along frequency band <span class="math">\(i\)</span>, for a response numbered 2.</p>
+<p>This yields fairly good matches; it turns out the averaged, smoothed response characterizes each room well. I tested this on 5 new recordings in each of the two environments, and about 80% of those were categorized correctly.</p>
+<script type="text/javascript">if (!document.getElementById('mathjaxscript_pelican_#%@#$@#')) {
+    var align = "center",
+        indent = "0em",
+        linebreak = "false";
+
+    if (false) {
+        align = (screen.width < 768) ? "left" : align;
+        indent = (screen.width < 768) ? "0em" : indent;
+        linebreak = (screen.width < 768) ? 'true' : linebreak;
+    }
+
+    var mathjaxscript = document.createElement('script');
+    mathjaxscript.id = 'mathjaxscript_pelican_#%@#$@#';
+    mathjaxscript.type = 'text/javascript';
+    mathjaxscript.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML';
+    mathjaxscript[(window.opera ? "innerHTML" : "text")] =
+        "MathJax.Hub.Config({" +
+        "    config: ['MMLorHTML.js']," +
+        "    TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } }," +
+        "    jax: ['input/TeX','input/MathML','output/HTML-CSS']," +
+        "    extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']," +
+        "    displayAlign: '"+ align +"'," +
+        "    displayIndent: '"+ indent +"'," +
+        "    showMathMenu: true," +
+        "    messageStyle: 'normal'," +
+        "    tex2jax: { " +
+        "        inlineMath: [ ['\\\\(','\\\\)'] ], " +
+        "        displayMath: [ ['$$','$$'] ]," +
+        "        processEscapes: true," +
+        "        preview: 'TeX'," +
+        "    }, " +
+        "    'HTML-CSS': { " +
+        "        styles: { '.MathJax_Display, .MathJax .mo, .MathJax .mi, .MathJax .mn': {color: 'inherit ! important'} }," +
+        "        linebreaks: { automatic: "+ linebreak +", width: '90% container' }," +
+        "    }, " +
+        "}); " +
+        "if ('default' !== 'default') {" +
+            "MathJax.Hub.Register.StartupHook('HTML-CSS Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax['HTML-CSS'].FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+            "MathJax.Hub.Register.StartupHook('SVG Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax.SVG.FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+        "}";
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(mathjaxscript);
+}
+</script>
+  </div>
+  <div class="article_meta">
+    <p>Posted on: Fri 27 January 2017</p>
+    <p>Category: <a href="/category/posts.html">posts</a>
+    </p>
+  </div>
+
+
+</article>
+
+
+    <div id="ending_message">
+      <p>&copy; Joshua Pham. Built using <a href="http://getpelican.com" target="_blank">Pelican</a>. Theme by Giulio Fidente on <a href="https://github.com/gfidente/pelican-svbhack" target="_blank">github</a>. </p>
+    </div>
+  </main>
+</body>
+</html>

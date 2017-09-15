@@ -1,5 +1,211 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Joshua Pham's blog - posts</title><link href="/" rel="alternate"></link><link href="/feeds/posts.atom.xml" rel="self"></link><id>/</id><updated>2016-09-19T00:00:00-07:00</updated><entry><title>Thinking outside the Board: Redesigning Pinterest's organization model</title><link href="/thinking-outside-the-board-redesigning-pinterests-organization-model.html" rel="alternate"></link><published>2016-09-19T00:00:00-07:00</published><updated>2016-09-19T00:00:00-07:00</updated><author><name>Joshua Pham</name></author><id>tag:None,2016-09-19:/thinking-outside-the-board-redesigning-pinterests-organization-model.html</id><summary type="html">&lt;p&gt;Pinterest goes by the name of a “visual discovery tool,” and it is good at finding content for users. It’s good at information retrieval, but perhaps it’s a signifier of underutilized potential that, seemingly by casual extension of this functionality, Pinterest serves as a mood-boarding tool. What if …&lt;/p&gt;</summary><content type="html">&lt;p&gt;Pinterest goes by the name of a “visual discovery tool,” and it is good at finding content for users. It’s good at information retrieval, but perhaps it’s a signifier of underutilized potential that, seemingly by casual extension of this functionality, Pinterest serves as a mood-boarding tool. What if it allowed users to do more than just hoard content en masse into Boards? I had questions about what mood-boarding could be through Pinterest.&lt;/p&gt;
-&lt;p&gt;My Principles of Interaction Design class assigned several projects involving user studies, and I took this liberty to address this curiosity of mine. I surveyed some fellow Pinterest users, then dreamt up a paper prototype. What follows is a summary of my study and design, as well as some reflection upon writing this up a few months after the class ended.&lt;/p&gt;
-&lt;p&gt;&lt;a href="https://medium.com/@joshuapham/pinterest-boards-have-a-size-problem-ac878f17e19b#.tozlrgbvx"&gt;Read more in the Medium post!&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;&lt;em&gt;This post is abridged from a design concept that I wrote about for Principles of Interaction Design (INF 350E) at UT Austin, which I took in Spring 2016. If you're curious, you can see initial study &lt;a href="https://www.dropbox.com/s/x8e0tjfkaqla6z9/Pinterest%20survey%20report.pdf?dl=0"&gt;here&lt;/a&gt; and the prototype review &lt;a href="https://www.dropbox.com/s/9zfs27y02i0igo1/Pinterest%20user%20test.pdf?dl=0"&gt;here&lt;/a&gt;. But bear in mind that this was no term paper nor final project, so the extent of user test results is more superficial.&lt;/em&gt;&lt;/p&gt;</content></entry></feed>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Joshua Pham's blog - posts</title><link href="/" rel="alternate"></link><link href="/feeds/posts.atom.xml" rel="self"></link><id>/</id><updated>2017-01-27T00:00:00-08:00</updated><entry><title>Impulse Responses: Categorizing Reverb</title><link href="/impulse-responses-categorizing-reverb.html" rel="alternate"></link><published>2017-01-27T00:00:00-08:00</published><updated>2017-01-27T00:00:00-08:00</updated><author><name>Joshua Pham</name></author><id>tag:None,2017-01-27:/impulse-responses-categorizing-reverb.html</id><summary type="html">&lt;p&gt;I'm taking a Musical Acoustics class where we've been learning that the architectural features of a room -- everything from the material of the walls to the occupants in the room -- affect the response time. However, I wanted to explore whether this response time is also frequency dependent. Do some frequencies …&lt;/p&gt;</summary><content type="html">&lt;p&gt;I'm taking a Musical Acoustics class where we've been learning that the architectural features of a room -- everything from the material of the walls to the occupants in the room -- affect the response time. However, I wanted to explore whether this response time is also frequency dependent. Do some frequencies sustain for longer than others, and can this help characterize the room?&lt;/p&gt;
+&lt;p&gt;To study this, I used an "impulse" signal, which is a short 1 ms sample played with equal loudness at all frequencies. Using speakers with an adequate response (bass to highs), one could play this sound in some room and measure the response with a microphone simultaneously. Taking this a step further, I explored whether it is possible to determine the room that the impulse is played in by comparing a response to a "database" of responses for known rooms -- almost like a form of echolocation. I figured this kind of characterization would be more difficult to do with response time alone.&lt;/p&gt;
+&lt;p&gt;When I started out, I looked through some research papers, but most involved advanced signal processing techniques. Instead, I took a more visual approach, inspired by some techniques in MATLAB that I learned this past semester in a computer vision course taught by Dr. Kristen Grauman.&lt;/p&gt;
+&lt;h2&gt;Recording the responses&lt;/h2&gt;
+&lt;p&gt;The script below, &lt;code&gt;getResponses.m&lt;/code&gt;, plays the sample 5 consecutive times and simultaneously records them. It stores each response as a 2d matrix of intensity values, for frequency (vertical) and sample (horizontal), which is a digital representation of time. For now, I stack the responses into &lt;code&gt;spectra&lt;/code&gt;, which is a format I can save to disk and load to experiment with later.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;clear&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="n"&gt;close&lt;/span&gt; &lt;span class="n"&gt;all&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;impulse&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;fs&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;audioread&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;impulse48khz.wav&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+&lt;span class="n"&gt;spectra&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="n"&gt;player&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;audioplayer&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;impulse&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;fs&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="n"&gt;listener&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;audiorecorder&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;fs&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;16&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;run&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;
+
+    &lt;span class="c"&gt;% pad the duration by 2 secs&lt;/span&gt;
+    &lt;span class="n"&gt;dur&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;size&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;impulse&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="n"&gt;fs&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c"&gt;% simultaneously record and play&lt;/span&gt;
+    &lt;span class="n"&gt;record&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;listener&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;dur&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;play&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;player&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;pause&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;dur&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;response&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;getaudiodata&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;listener&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="c"&gt;% pad the pop to match response.&lt;/span&gt;
+    &lt;span class="n"&gt;popp&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;zeros&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;size&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;popp&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nb"&gt;size&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;impulse&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;:)&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;impulse&lt;/span&gt;&lt;span class="p"&gt;(:,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="c"&gt;% divide into 50-sample windows, no overlap, at a quantization of&lt;/span&gt;
+    &lt;span class="c"&gt;% 100-Hz intervals of &amp;quot;cyclical freqs&amp;quot; from 1 Hz to 20Khz (sampled at&lt;/span&gt;
+    &lt;span class="c"&gt;% 48000 Hz, so roughly half that, which is symmetric to the rest). This&lt;/span&gt;
+    &lt;span class="c"&gt;% yields 200 frequency &amp;quot;bins&amp;quot;. The response plot thus has 200 rows.&lt;/span&gt;
+    &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;t&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;spectrogram&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;50&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;100&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;20000&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;fs&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;yaxis&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;imObj&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;imagesc&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;t&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;log10&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;abs&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;)));&lt;/span&gt;
+    &lt;span class="n"&gt;spectrum&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;imObj&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;CData&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;spectra&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
+        &lt;span class="n"&gt;spectra&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;zeros&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;size&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="nb"&gt;size&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;t&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="k"&gt;end&lt;/span&gt;
+    &lt;span class="n"&gt;spectra&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nb"&gt;size&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;spectrum&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nb"&gt;size&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;spectrum&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;run&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;spectrum&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Analyzing the responses&lt;/h2&gt;
+&lt;p&gt;Here's a chart showing the response for each play. In this example, the "room" is my bedroom.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="/resources/room.png"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;(In the chart, frequency increases from top to bottom, and time increases from left to right. Yellow is a high value, and blue is a low value. Frequency quantization is described further in the code comments above, but 200 does not mean 200 Hz).&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;You might be able to observe some regularity to the responses, but there is noise. Even the average of all the responses had some noise, so I decided to smooth the image of the responses to remove that noise. I swept a Gaussian filter through the image, hoping this would create a more general, forgiving, and flexible representation of its room for comparison with other responses.&lt;/p&gt;
+&lt;p&gt;Here's the same chart, but recorded in my bathtub, for comparison. The speaker was placed in the tub, and the microphone was held in the air.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="/resources/bathtub.png"&gt;&lt;/p&gt;
+&lt;p&gt;The low end of the spectrum seems to live longer across the board, and it was audible when I tested it. Hopefully this helps uniquely characterize the sound, and it does as we will see. Neither my room nor the bathtub had very long reverberation times, so that alone would not characterize the sound.&lt;/p&gt;
+&lt;h2&gt;Developing a method to compare responses&lt;/h2&gt;
+&lt;p&gt;I thought about taking the sum of the intensity values in the entire response matrix to compare responses, but that didn't seem like a useful or granular enough measure. What I wanted was something frequency dependent.&lt;/p&gt;
+&lt;p&gt;I also took a look at audio fingerprinting, a technique used in Shazam and similar services, for which an excellent article was written here: &lt;a href="http://willdrevo.com/fingerprinting-and-audio-recognition-with-python/"&gt;http://willdrevo.com/fingerprinting-and-audio-recognition-with-python/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Unfortunately, though, my response is pretty short and the impulse is uniform in frequency, and this works better with the varied frequency distributions through time (several seconds of a song).&lt;/p&gt;
+&lt;p&gt;I settled on the following method, developed around an intuition for the hypothesis that one frequency's response will ring longer than another's:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Sum up the intensity values for a frequency band (a row in the chart) through time. This is an approximation of how long that particular frequency reverberates, but the sum also accounts for the decrease in volume of that frequency over time.&lt;/strong&gt; I realize that this is one area where my visual interpretation falls short: each frequency's response is dependent of the other, when actually harmonics of one frequency affect (through refraction, reflection, etc.) other frequency responses as they come into the microphone.&lt;/li&gt;
+&lt;li&gt;For any element in the response matrix, I want anything that represents a still-ringing sound to be considered. I want to discard the rest, especially negative values that may take away from that sum. So I threshold the values using a MATLAB function that finds an appropriate global threshold value. I set any intensity below that value to zero, so they don't contribute to the sum.&lt;/li&gt;
+&lt;li&gt;At this point, we still have 200 frequency segments. I assume that cutting down this number, to a lower resolution, will still hold enough information to differentiate responses between rooms. I choose a downsampling factor of 40, for a result of 5 separate frequency responses.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Here's the code I use to do this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;function&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;[ tail_sums ] &lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nf"&gt;processResponse&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; spectra_name, WILL_PLOT &lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="c"&gt;%% Trim the responses.&lt;/span&gt;
+
+&lt;span class="n"&gt;sampleCutoff&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;250&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="c"&gt;% load responses.&lt;/span&gt;
+&lt;span class="n"&gt;load&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;spectra_name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;spectra&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+&lt;span class="n"&gt;numResponses&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;size&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;spectra&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="n"&gt;trimmedSpectra&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;zeros&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;size&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;spectra&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;sampleCutoff&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;numResponses&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="c"&gt;% hardcode, only care about 1000 samples.&lt;/span&gt;
+
+&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;rspNo&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="n"&gt;numResponses&lt;/span&gt;
+    &lt;span class="n"&gt;response&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;spectra&lt;/span&gt;&lt;span class="p"&gt;(:,&lt;/span&gt; &lt;span class="p"&gt;:,&lt;/span&gt; &lt;span class="n"&gt;rspNo&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;magnitude&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;~&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;imgradient&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="c"&gt;% get gradient of image.&lt;/span&gt;
+
+    &lt;span class="c"&gt;% trim the image by taking the max edge in the horizontal direction as&lt;/span&gt;
+    &lt;span class="c"&gt;% the cutoff. This edge will have maximum vertical sum (intensity of&lt;/span&gt;
+    &lt;span class="c"&gt;% gradient image along that edge); it is the start of the impulse sound.&lt;/span&gt;
+    &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="o"&gt;~&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;peakIdx&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;max&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;sum&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;magnitude&lt;/span&gt;&lt;span class="p"&gt;(:,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;:(&lt;/span&gt;&lt;span class="k"&gt;end&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;200&lt;/span&gt;&lt;span class="p"&gt;)),&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt; &lt;span class="c"&gt;% peak noise block @ end.&lt;/span&gt;
+    &lt;span class="n"&gt;trimmed&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="p"&gt;(:,&lt;/span&gt; &lt;span class="n"&gt;peakIdx&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="n"&gt;peakIdx&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;sampleCutoff&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;trimmedSpectra&lt;/span&gt;&lt;span class="p"&gt;(:,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="n"&gt;sampleCutoff&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;trimmed&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;WILL_PLOT&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+        &lt;span class="n"&gt;subplot&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;numResponses&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;rspNo&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="n"&gt;imagesc&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;trimmed&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;Trimmed responses: #&amp;#39;&lt;/span&gt; &lt;span class="n"&gt;num2str&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;rspNo&lt;/span&gt;&lt;span class="p"&gt;)]);&lt;/span&gt;
+    &lt;span class="k"&gt;end&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+
+&lt;span class="c"&gt;% Now that they are lined up, combine the responses and clean them up&lt;/span&gt;
+&lt;span class="c"&gt;% (normalize to the max value + blur).&lt;/span&gt;
+&lt;span class="n"&gt;sumTrimmed&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;sum&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;trimmedSpectra&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="nb"&gt;size&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;trimmedSpectra&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="n"&gt;blurred&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;imfilter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;sumTrimmed&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;fspecial&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;gaussian&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;15&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;replicate&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+&lt;span class="c"&gt;% show the averaged image.&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;WILL_PLOT&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+    &lt;span class="n"&gt;subplot&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;numResponses&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;numResponses&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;imagesc&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;blurred&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;Averaged + blurred&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+
+&lt;span class="c"&gt;% normalize to [0, 1]. Had negatives.&lt;/span&gt;
+&lt;span class="n"&gt;norm_blurred&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;blurred&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;min&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;min&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;blurred&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;max&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;max&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;blurred&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;min&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;min&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;blurred&lt;/span&gt;&lt;span class="p"&gt;)));&lt;/span&gt;
+&lt;span class="c"&gt;% hard cutoff when reverb tail ends. Zero out the rest to accurately&lt;/span&gt;
+&lt;span class="c"&gt;% calculate peaks.&lt;/span&gt;
+&lt;span class="n"&gt;norm_blurred&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;norm_blurred&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;graythresh&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;norm_blurred&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="mf"&gt;0.6&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="c"&gt;% show the image with a hard cutoff.&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;WILL_PLOT&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+    &lt;span class="n"&gt;figure&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;subplot&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;imagesc&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;norm_blurred&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+
+&lt;span class="c"&gt;% downsample the frequency spectrum into 5 frequency segments (200 rows /&lt;/span&gt;
+&lt;span class="c"&gt;% 40 = 5)&lt;/span&gt;
+&lt;span class="n"&gt;quantized_blurred&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;downsample&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;norm_blurred&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;40&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;WILL_PLOT&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+    &lt;span class="n"&gt;subplot&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;imagesc&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;quantized_blurred&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+
+&lt;span class="c"&gt;% tail_sums holds a 5 x 1 vector; each element is the sum of intensities&lt;/span&gt;
+&lt;span class="c"&gt;% throughout a bin&amp;#39;s response tail. A bin is the downsampled frequency&lt;/span&gt;
+&lt;span class="c"&gt;% segment. Although this is a radical transformation that may have side&lt;/span&gt;
+&lt;span class="c"&gt;% effects, all responses will be processed the same, so this is something&lt;/span&gt;
+&lt;span class="c"&gt;% we can use to compare responses.&lt;/span&gt;
+&lt;span class="n"&gt;tail_sums&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;sum&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;quantized_blurred&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+&lt;span class="k"&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The results are shown below:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="/resources/threshold.png"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Here is the thresholded response&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="/resources/segmented.png"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Here is the response after thresholding and downsampling of frequency segments&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;Taking the sum of the intensities for each frequency segment's response, I get a vector of values for each of the five bands. They map out quite well to the length and intensity of the frequencies' responses!&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;181.0189
+122.3577
+91.6212
+81.9022
+99.3999
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;So let's say I want to determine the room I'm in, and I fire the impulse and I record the response. I generate a vector for this response, then take the Euclidean distance between two vectors. Each vector is already in order of increasing frequency, at the same, regular interval. This is the calculation:&lt;/p&gt;
+&lt;p&gt;&lt;span class="math"&gt;\( d = \sqrt{\sum_{i = 1} ^ 5 (s_{2i} - s_{1i}) ^ 2}\)&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;Where &lt;span class="math"&gt;\(d\)&lt;/span&gt; is distance and a vector is &lt;span class="math"&gt;\(\textbf{s} = (s_{21}, s_{22}, \dots, s_{2i}, \dots, s_{2n}), |s| = n\)&lt;/span&gt;.  &lt;span class="math"&gt;\(s_{2i}\)&lt;/span&gt; represents a sum along frequency band &lt;span class="math"&gt;\(i\)&lt;/span&gt;, for a response numbered 2.&lt;/p&gt;
+&lt;p&gt;This yields fairly good matches; it turns out the averaged, smoothed response characterizes each room well. I tested this on 5 new recordings in each of the two environments, and about 80% of those were categorized correctly.&lt;/p&gt;
+&lt;script type="text/javascript"&gt;if (!document.getElementById('mathjaxscript_pelican_#%@#$@#')) {
+    var align = "center",
+        indent = "0em",
+        linebreak = "false";
+
+    if (false) {
+        align = (screen.width &lt; 768) ? "left" : align;
+        indent = (screen.width &lt; 768) ? "0em" : indent;
+        linebreak = (screen.width &lt; 768) ? 'true' : linebreak;
+    }
+
+    var mathjaxscript = document.createElement('script');
+    mathjaxscript.id = 'mathjaxscript_pelican_#%@#$@#';
+    mathjaxscript.type = 'text/javascript';
+    mathjaxscript.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML';
+    mathjaxscript[(window.opera ? "innerHTML" : "text")] =
+        "MathJax.Hub.Config({" +
+        "    config: ['MMLorHTML.js']," +
+        "    TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } }," +
+        "    jax: ['input/TeX','input/MathML','output/HTML-CSS']," +
+        "    extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']," +
+        "    displayAlign: '"+ align +"'," +
+        "    displayIndent: '"+ indent +"'," +
+        "    showMathMenu: true," +
+        "    messageStyle: 'normal'," +
+        "    tex2jax: { " +
+        "        inlineMath: [ ['\\\\(','\\\\)'] ], " +
+        "        displayMath: [ ['$$','$$'] ]," +
+        "        processEscapes: true," +
+        "        preview: 'TeX'," +
+        "    }, " +
+        "    'HTML-CSS': { " +
+        "        styles: { '.MathJax_Display, .MathJax .mo, .MathJax .mi, .MathJax .mn': {color: 'inherit ! important'} }," +
+        "        linebreaks: { automatic: "+ linebreak +", width: '90% container' }," +
+        "    }, " +
+        "}); " +
+        "if ('default' !== 'default') {" +
+            "MathJax.Hub.Register.StartupHook('HTML-CSS Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax['HTML-CSS'].FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+            "MathJax.Hub.Register.StartupHook('SVG Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax.SVG.FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+        "}";
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(mathjaxscript);
+}
+&lt;/script&gt;</content></entry></feed>
